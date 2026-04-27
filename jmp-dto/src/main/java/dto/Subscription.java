@@ -6,8 +6,8 @@ import lombok.Data;
 @Data
 public class Subscription {
 
-  String bankcardNumber;
-  LocalDate startDate;
+  private String bankcardNumber;
+  private LocalDate startDate;
 
   public Subscription(String bankcardNumber, LocalDate startDate) {
     this.bankcardNumber = bankcardNumber;

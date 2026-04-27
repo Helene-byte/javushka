@@ -8,6 +8,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public abstract class BankCard {
-  String number;
-  User user;
+  private String number;
+  private User user;
 }
