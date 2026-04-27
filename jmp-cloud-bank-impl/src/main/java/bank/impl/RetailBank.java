@@ -1,8 +1,8 @@
 package bank.impl;
 
-public class RetailBank extends BankImpl {
+public class RetailBank extends AbstractBank {
 
-    public RetailBank() {
-        super("RET-");
-    }
+  public RetailBank() {
+    super("RET-");
+  }
 }

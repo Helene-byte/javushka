@@ -1,5 +1,5 @@
 module jmp.dto {
-    exports dto;
-    requires static lombok;
+  exports dto;
 
+  requires static lombok;
 }

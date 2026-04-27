@@ -1,8 +1,8 @@
 package bank.impl;
 
-public class CentralBank extends BankImpl {
+public class CentralBank extends AbstractBank {
 
-    public CentralBank() {
-        super("CB-");
-    }
+  public CentralBank() {
+    super("CB-");
+  }
 }
