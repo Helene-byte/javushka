@@ -5,9 +5,6 @@ on:
     branches:
       - "**"
 
-permissions:
-  contents: write
-
 jobs:
   format-and-lint:
     runs-on: ubuntu-latest
@@ -24,15 +21,6 @@ jobs:
           java-version: "21"
           cache: maven
 
-      - name: Apply formatting
-        run: mvn -B spotless:apply
-
-      - name: Commit formatting changes
-        if: github.event.pull_request.head.repo.full_name == github.repository
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "chore: apply spotless formatting"
-
       - name: Run style checks
-        run: mvn -B checkstyle:check spotless:check
+        run: mvn -B spotless:check checkstyle:check
 
