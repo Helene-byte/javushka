@@ -1,7 +1,11 @@
 package com.example;
 
 import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Collector;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -12,7 +16,6 @@ public class PropStreams {
 
     private PropStreams() {
     }
-
     // Produces n props: random id, value = 0..n-1
     public static Stream<Prop> generate(int n) {
         return IntStream.range(0, n)
@@ -29,7 +32,7 @@ public class PropStreams {
                 .flatMap(List::stream)
                 .map(Prop::id);
     }
-
+    //counts
     public static long countEven(Stream<Integer> stream) {
         return stream.filter(n -> n % 2 == 0).count();
     }
@@ -52,31 +55,31 @@ public class PropStreams {
                 ).filter(Objects::nonNull)
         );
     }
-//sorting,  returns a List<Prop> sorted by value property first then by name
+    //sorting,  returns a List<Prop> sorted by value property first then by name
     public static List<Prop> sortByValueThenName(Stream<Prop> stream) {
         return stream
                 .sorted(Comparator.comparingInt(Prop::value)
                         .thenComparing(Prop::name))
                 .collect(Collectors.toList());
     }
-//filter by property ,  returns a List<Prop> sorted by value property first then by name
+   //filter by property ,  returns a List<Prop> sorted by value property first then by name
     public static List<Prop> filterNonNullName(Stream<Prop> stream) {
         return stream
                 .filter(p -> p.name() != null)
                 .collect(Collectors.toList());
     }
-//stateful filter
+   //stateful filter
     public static Stream<Prop> deduplicateById(Stream<Prop> stream) {
         Set<UUID> seen = new HashSet<>();
         return stream.filter(p -> seen.add(p.id()));
     }
-//aggregation
+   //aggregation
     public static Optional<String> nameWithHighestValue(Stream<Prop> stream) {
         return stream
                 .max(Comparator.comparingInt(Prop::value))
                 .map(Prop::name);
     }
-//combining Collectors
+   //combining Collectors
     public static Map<String, List<Prop>> nameConflicts(Stream<Prop> stream) {
         return stream
                 .collect(Collectors.groupingBy(Prop::name))
@@ -87,12 +90,12 @@ public class PropStreams {
                         .count() > 1)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
-//stateful collectors
+  //stateful collectors
     public static Map<String, Integer> sumByName(Stream<Prop> stream) {
         return stream.collect(
                 Collectors.groupingBy(Prop::name, Collectors.summingInt(Prop::value)));
     }
-//collector chaining
+  //collector chaining
     public static Map<Boolean, Integer> sumOddEven(Stream<Integer> stream) {
         return stream.collect(
                 Collectors.partitioningBy(
@@ -102,8 +105,7 @@ public class PropStreams {
         );
     }
 
-
-    //custom agregation
+    //custom aggregation
     public record MinMax(String minName, String maxName) {
     }
 
@@ -119,6 +121,68 @@ public class PropStreams {
         );
     }
 
+    // Functional Transformation Applies provided functions in sequence;
+    // empty stream -> identity.
+    public static <T> Function<T, T> fold(Stream<Function<T, T>> functions) {
+        return functions.reduce(Function.identity(), Function::andThen);
+    }
+
+    // advanced collector returns a 'partitioning' Collector that splits the stream based
+    // on the provided predicate
+    public static <T, RT, AT, RF, AF, R> Collector<T, ?, R> partitioningCollector(
+            Predicate<? super T> predicate,
+            Collector<? super T, AT, RT> collTrue,
+            Collector<? super T, AF, RF> collFalse,
+            BiFunction<RT, RF, R> constructor
+    ) {
+        Objects.requireNonNull(predicate);
+        Objects.requireNonNull(collTrue);
+        Objects.requireNonNull(collFalse);
+        Objects.requireNonNull(constructor);
+
+        class PartitionAccumulator {
+            private final AT trueState;
+            private final AF falseState;
+
+            private PartitionAccumulator(AT trueState, AF falseState) {
+                this.trueState = trueState;
+                this.falseState = falseState;
+            }
+        }
+
+        return Collector.of(
+                () -> new PartitionAccumulator(collTrue.supplier().get(), collFalse.supplier().get()),
+                (acc, item) -> {
+                    if (predicate.test(item)) {
+                        collTrue.accumulator().accept(acc.trueState, item);
+                    } else {
+                        collFalse.accumulator().accept(acc.falseState, item);
+                    }
+                },
+                (left, right) -> new PartitionAccumulator(
+                        collTrue.combiner().apply(left.trueState, right.trueState),
+                        collFalse.combiner().apply(left.falseState, right.falseState)
+                ),
+                acc -> constructor.apply(
+                        collTrue.finisher().apply(acc.trueState),
+                        collFalse.finisher().apply(acc.falseState)
+                )
+        );
+    }
 
 
+
+    public record SumAndNulls(int sum, long nullCount) {
+    }
+
+    public static SumAndNulls sumAndNulls(Stream<Integer> stream) {
+        return stream.collect(
+                partitioningCollector(
+                        Objects::nonNull,
+                        Collectors.summingInt(Integer::intValue),
+                        Collectors.counting(),
+                        SumAndNulls::new
+                )
+        );
+    }
 }
