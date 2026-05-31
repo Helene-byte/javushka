@@ -116,23 +116,6 @@ public final class OffersAggregatorCompletableFuture implements AutoCloseable {
                 .collect(Collectors.toList());
     }
 
-    private void recordOutcome(Throwable ex) {
-        if (ex instanceof CancellationException
-                || ex.getCause() instanceof InterruptedException) {
-            outcomeCounts.get(ProviderOutcome.TIMEOUT).incrementAndGet();
-        } else {
-            outcomeCounts.get(ProviderOutcome.FAILURE).incrementAndGet();
-        }
-    }
-
-    /** Returns a snapshot of per-provider outcome counts. */
-    public AggregationStats stats() {
-        int success = outcomeCounts.get(ProviderOutcome.SUCCESS).get();
-        int failure = outcomeCounts.get(ProviderOutcome.FAILURE).get();
-        int timeout = outcomeCounts.get(ProviderOutcome.TIMEOUT).get();
-        return new AggregationStats(providers.size(), success, failure, timeout);
-    }
-
     @Override
     public void close() {
         executor.shutdown();
@@ -146,6 +129,14 @@ public final class OffersAggregatorCompletableFuture implements AutoCloseable {
         }
     }
 
+    /** Returns a snapshot of per-provider outcome counts. */
+    public AggregationStats stats() {
+        int success = outcomeCounts.get(ProviderOutcome.SUCCESS).get();
+        int failure = outcomeCounts.get(ProviderOutcome.FAILURE).get();
+        int timeout = outcomeCounts.get(ProviderOutcome.TIMEOUT).get();
+        return new AggregationStats(providers.size(), success, failure, timeout);
+    }
+
     /** Immutable snapshot of aggregation metrics. */
     public record AggregationStats(int totalProviders, int succeeded, int failed, int timedOut) {
         @Override
@@ -153,6 +144,15 @@ public final class OffersAggregatorCompletableFuture implements AutoCloseable {
             return String.format(
                     "AggregationStats{total=%d, succeeded=%d, failed=%d, timedOut=%d}",
                     totalProviders, succeeded, failed, timedOut);
+        }
+    }
+
+    private void recordOutcome(Throwable ex) {
+        if (ex instanceof CancellationException
+                || ex.getCause() instanceof InterruptedException) {
+            outcomeCounts.get(ProviderOutcome.TIMEOUT).incrementAndGet();
+        } else {
+            outcomeCounts.get(ProviderOutcome.FAILURE).incrementAndGet();
         }
     }
 }
