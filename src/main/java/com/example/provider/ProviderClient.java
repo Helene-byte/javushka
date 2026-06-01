@@ -21,8 +21,8 @@ public interface ProviderClient {
      *
      * @param productId product to look up
      * @return non-null list of offers (may be empty)
-     * @throws Exception if provider fails to return results
+     * @throws RuntimeException if provider fails to return results
      */
-    List<Offer> fetchOffers(String productId) throws Exception;
+    List<Offer> fetchOffers(String productId);
 }
 

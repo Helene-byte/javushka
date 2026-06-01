@@ -7,6 +7,22 @@ import java.util.List;
 
 public final class WalmartLikeClient extends SimulatedProviderClient {
 
+    /**
+     * Walmart client with custom timeout range.
+     * @param minSleepMs minimum sleep time in milliseconds
+     * @param maxSleepMs maximum sleep time in milliseconds
+     */
+    public WalmartLikeClient(int minSleepMs, int maxSleepMs) {
+        super(minSleepMs, maxSleepMs);
+    }
+
+    /**
+     * Walmart client with default timeout range (100-1200ms).
+     */
+    public WalmartLikeClient() {
+        super();
+    }
+
     @Override
     public String providerId() {
         return "walmart";

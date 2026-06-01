@@ -7,6 +7,22 @@ import java.util.List;
 
 public final class ExpressDeliveryClient extends SimulatedProviderClient {
 
+    /**
+     * Express delivery client with custom timeout range.
+     * @param minSleepMs minimum sleep time in milliseconds
+     * @param maxSleepMs maximum sleep time in milliseconds
+     */
+    public ExpressDeliveryClient(int minSleepMs, int maxSleepMs) {
+        super(minSleepMs, maxSleepMs);
+    }
+
+    /**
+     * Express delivery client with default timeout range (100-1200ms).
+     */
+    public ExpressDeliveryClient() {
+        super();
+    }
+
     @Override
     public String providerId() {
         return "express-delivery";

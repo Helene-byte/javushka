@@ -7,6 +7,22 @@ import java.util.List;
 
 public final class LocalStoreClient extends SimulatedProviderClient {
 
+    /**
+     * Local store client with custom timeout range.
+     * @param minSleepMs minimum sleep time in milliseconds
+     * @param maxSleepMs maximum sleep time in milliseconds
+     */
+    public LocalStoreClient(int minSleepMs, int maxSleepMs) {
+        super(minSleepMs, maxSleepMs);
+    }
+
+    /**
+     * Local store client with default timeout range (100-1200ms).
+     */
+    public LocalStoreClient() {
+        super();
+    }
+
     @Override
     public String providerId() {
         return "local-store";

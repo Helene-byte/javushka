@@ -10,7 +10,6 @@ import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -42,7 +41,7 @@ public final class OffersAggregatorCompletableFuture implements AutoCloseable {
      * Creates aggregator with a fixed thread pool sized to number of providers.
      */
     public OffersAggregatorCompletableFuture(List<ProviderClient> providers) {
-        this(providers, Executors.newFixedThreadPool(providers.size()));
+        this(providers, Executors.newFixedThreadPool(Math.max(1, providers.size())));
     }
 
     /**
@@ -67,16 +66,10 @@ public final class OffersAggregatorCompletableFuture implements AutoCloseable {
         // One future per provider; failures/timeouts become empty lists
         List<CompletableFuture<List<Offer>>> futures = providers.stream()
                 .map(provider -> CompletableFuture
-                        .supplyAsync(() -> {
-                            try {
-                                return provider.fetchOffers(request.productId());
-                            } catch (Exception e) {
-                                throw new RuntimeException(e);
-                            }
-                        }, executor)
+                        .supplyAsync(() -> provider.fetchOffers(request.productId()), executor)
                         .handle((offers, ex) -> {
                             if (ex != null) {
-                                recordOutcome(ex);
+                                outcomeCounts.get(ProviderOutcome.FAILURE).incrementAndGet();
                                 return List.<Offer>of();
                             }
                             outcomeCounts.get(ProviderOutcome.SUCCESS).incrementAndGet();
@@ -100,11 +93,7 @@ public final class OffersAggregatorCompletableFuture implements AutoCloseable {
         for (int i = 0; i < futures.size(); i++) {
             CompletableFuture<List<Offer>> future = futures.get(i);
             if (future.isDone() && !future.isCancelled()) {
-                try {
                     collected.addAll(future.getNow(List.of()));
-                } catch (Exception e) {
-                    outcomeCounts.get(ProviderOutcome.FAILURE).incrementAndGet();
-                }
             } else if (future.isCancelled()) {
                 outcomeCounts.get(ProviderOutcome.TIMEOUT).incrementAndGet();
             }
@@ -144,15 +133,6 @@ public final class OffersAggregatorCompletableFuture implements AutoCloseable {
             return String.format(
                     "AggregationStats{total=%d, succeeded=%d, failed=%d, timedOut=%d}",
                     totalProviders, succeeded, failed, timedOut);
-        }
-    }
-
-    private void recordOutcome(Throwable ex) {
-        if (ex instanceof CancellationException
-                || ex.getCause() instanceof InterruptedException) {
-            outcomeCounts.get(ProviderOutcome.TIMEOUT).incrementAndGet();
-        } else {
-            outcomeCounts.get(ProviderOutcome.FAILURE).incrementAndGet();
         }
     }
 }

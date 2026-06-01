@@ -4,6 +4,23 @@ import com.example.model.Offer;
 import java.util.ArrayList;
 import java.util.List;
 public final class AmazonLikeClient extends SimulatedProviderClient {
+
+    /**
+     * Amazon client with custom timeout range.
+     * @param minSleepMs minimum sleep time in milliseconds
+     * @param maxSleepMs maximum sleep time in milliseconds
+     */
+    public AmazonLikeClient(int minSleepMs, int maxSleepMs) {
+        super(minSleepMs, maxSleepMs);
+    }
+
+    /**
+     * Amazon client with default timeout range (100-1200ms).
+     */
+    public AmazonLikeClient() {
+        super();
+    }
+
     @Override
     public String providerId() {
         return "amazon";

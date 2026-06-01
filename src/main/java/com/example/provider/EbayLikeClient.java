@@ -7,6 +7,22 @@ import java.util.List;
 
 public final class EbayLikeClient extends SimulatedProviderClient {
 
+    /**
+     * eBay client with custom timeout range.
+     * @param minSleepMs minimum sleep time in milliseconds
+     * @param maxSleepMs maximum sleep time in milliseconds
+     */
+    public EbayLikeClient(int minSleepMs, int maxSleepMs) {
+        super(minSleepMs, maxSleepMs);
+    }
+
+    /**
+     * eBay client with default timeout range (100-1200ms).
+     */
+    public EbayLikeClient() {
+        super();
+    }
+
     @Override
     public String providerId() {
         return "ebay";

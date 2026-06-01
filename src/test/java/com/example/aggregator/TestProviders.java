@@ -43,9 +43,15 @@ public final class TestProviders {
             public String providerId() {
                 return id;
             }
+
             @Override
-            public List<Offer> fetchOffers(String productId) throws Exception{
-                Thread.sleep(sleepMs);
+            public List<Offer> fetchOffers(String productId) {
+                try {
+                    Thread.sleep(sleepMs);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException(e);
+                }
                 return List.of(new Offer(id, 1, 1));
             }
         };
