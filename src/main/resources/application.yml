@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: cdp-learning-app
+  datasource:
+    url: ${CDP_DB_URL:jdbc:postgresql://localhost:5432/cdp}
+    username: ${CDP_DB_USERNAME}
+    password: ${CDP_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+  sql:
+    init:
+      mode: never
+
+
