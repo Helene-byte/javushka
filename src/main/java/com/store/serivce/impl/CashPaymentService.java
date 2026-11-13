@@ -1,11 +1,9 @@
 package com.store.serivce.impl;
 
 import com.store.serivce.PaymentService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-@Service
-@Qualifier("cash")
+@Service("cash")
 public class CashPaymentService implements PaymentService {
     @Override
     public void processPayment() {
