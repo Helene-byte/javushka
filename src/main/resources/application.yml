@@ -1,0 +1,10 @@
+app:
+  name: Book Catalog Service
+  version: 1.0.0
+  description: Default Spring Boot application for Java mentoring program
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
